@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f8f4ff">
+  <meta name="description" content="A simple, private, offline-friendly flashcard study app.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Pocket Cards</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Pocket Cards home"><span class="brand-icon">✦</span><span>Pocket Cards</span></a>
+    <button id="installBtn" class="button button-quiet hidden" type="button">Install app</button>
+  </header>
+
+  <main class="app-shell">
+    <section id="homeView" class="view active">
+      <div class="hero">
+        <div>
+          <p class="eyebrow">YOUR LITTLE STUDY SPACE</p>
+          <h1>Small cards.<br><span>Big recall.</span></h1>
+          <p class="subtext">Make a few cards, come back often, and let your memory get stronger.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true"><div class="art-card back"></div><div class="art-card front"><span>?</span><i>✦</i></div></div>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat-card"><span class="stat-icon lavender">▤</span><div><strong id="statCards">0</strong><span>Total cards</span></div></article>
+        <article class="stat-card"><span class="stat-icon peach">↻</span><div><strong id="statDue">0</strong><span>Due today</span></div></article>
+        <article class="stat-card"><span class="stat-icon mint">✓</span><div><strong id="statMastered">0</strong><span>Mastered</span></div></article>
+      </div>
+
+      <div class="section-heading"><div><p class="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2>Your decks</h2></div><button class="text-button" id="createDeckShortcut">+ New deck</button></div>
+      <div id="homeDecks" class="deck-grid"></div>
+      <div id="emptyState" class="empty-state">
+        <div class="empty-illustration">✎</div><h3>Your first deck is waiting</h3><p>Create a subject deck, add cards manually, or upload a text-based PDF to draft cards locally.</p>
+        <button class="button button-primary" id="emptyCreateDeck">Create your first deck</button>
+      </div>
+      <div class="privacy-note"><span>🔒</span><div><strong>Private by design</strong><p>Your cards stay in this browser on this device. Export a backup if you want to keep a copy.</p></div></div>
+    </section>
+
+    <section id="decksView" class="view">
+      <div class="page-heading"><div><p class="eyebrow">ORGANIZE YOUR LEARNING</p><h1>My decks</h1></div><button class="button button-primary" id="createDeckBtn">+ New deck</button></div>
+      <div id="allDecks" class="deck-grid"></div>
+      <div id="allDecksEmpty" class="empty-state compact"><div class="empty-illustration">▤</div><h3>No decks yet</h3><p>Make one for a subject or chapter.</p></div>
+    </section>
+
+    <section id="studyView" class="view">
+      <div class="study-top"><button class="text-button" id="backFromStudy">← Back</button><span id="studyDeckName" class="pill">Deck</span></div>
+      <div class="study-progress"><div><span id="studyCounter">Card 1 of 1</span><span id="studyRemaining">0 remaining</span></div><div class="progress-track"><div id="studyProgressBar" class="progress-fill"></div></div></div>
+      <div id="studyEmpty" class="empty-state compact hidden"><div class="empty-illustration">☼</div><h3>All caught up!</h3><p>No cards are due in this deck. You can still study all cards from the deck page.</p><button class="button button-primary" id="studyAllBtn">Study all cards</button></div>
+      <button id="flashcard" class="flashcard" type="button" aria-label="Reveal answer">
+        <span id="cardType" class="card-type">QUESTION</span>
+        <span id="cardPrompt" class="card-content">Your question goes here</span>
+        <span id="cardSource" class="card-source"></span>
+        <span id="flipHint" class="flip-hint">Tap to reveal answer ↗</span>
+      </button>
+      <div id="answerActions" class="answer-actions hidden">
+        <p>How well did you remember?</p>
+        <div class="rating-buttons">
+          <button class="rating again" data-rating="again"><span>↻</span> Again</button>
+          <button class="rating hard" data-rating="hard"><span>◐</span> Almost</button>
+          <button class="rating good" data-rating="good"><span>✓</span> Got it</button>
+        </div>
+      </div>
+      <div id="studyEditRow" class="study-edit-row"><button id="editStudyCard" class="text-button">✎ Edit card</button><button id="shuffleStudy" class="text-button">⤨ Shuffle</button></div>
+    </section>
+
+    <section id="generateView" class="view">
+      <div class="page-heading"><div><p class="eyebrow">FROM DOCUMENT TO DECK</p><h1>Make cards from PDF</h1></div></div>
+      <div class="info-banner"><span>💡</span><p><strong>Free and local, with one limitation.</strong> This version extracts selectable text from a PDF in your browser and drafts cards using definitions, headings, lists and key sentences. It does not use an online AI model, so it won't understand every passage like a full AI tutor. Scanned/image-only PDFs need OCR and aren't supported in this simple version.</p></div>
+      <form id="pdfForm" class="panel form-stack">
+        <label class="field-label" for="pdfFile">Choose a text-based PDF</label>
+        <input id="pdfFile" type="file" accept="application/pdf,.pdf" required>
+        <label class="field-label" for="pdfDeckSelect">Save cards into</label>
+        <select id="pdfDeckSelect" required></select>
+        <label class="field-label" for="pdfCardCount">Draft up to</label>
+        <select id="pdfCardCount"><option value="10">10 cards</option><option value="20" selected>20 cards</option><option value="40">40 cards</option><option value="80">80 cards</option></select>
+        <button class="button button-primary" type="submit" id="generateBtn">Extract text & draft cards</button>
+        <p class="small-note">The PDF is processed on this device. Very large PDFs may take a little while. Always review the generated cards before studying.</p>
+      </form>
+      <div id="pdfStatus" class="status-message hidden" role="status"></div>
+      <div id="draftArea" class="draft-area hidden">
+        <div class="section-heading"><div><p class="eyebrow">CHECK BEFORE SAVING</p><h2>Draft cards <span id="draftCount" class="count-badge">0</span></h2></div><button id="saveDrafts" class="button button-primary" type="button">Save selected</button></div>
+        <div class="draft-tools"><button id="selectAllDrafts" class="text-button">Select all</button><button id="clearDrafts" class="text-button">Clear drafts</button></div>
+        <div id="draftList" class="draft-list"></div>
+      </div>
+    </section>
+
+    <section id="progressView" class="view">
+      <div class="page-heading"><div><p class="eyebrow">A LITTLE BETTER EACH TIME</p><h1>Your progress</h1></div></div>
+      <div class="progress-summary">
+        <div class="progress-ring"><div><strong id="masteryPercent">0%</strong><span>mastered</span></div></div>
+        <div><h2 id="progressHeadline">Your journey starts here</h2><p id="progressCopy" class="subtext">Each review is a small win. Keep going.</p></div>
+      </div>
+      <div class="section-heading"><div><p class="eyebrow">BY SUBJECT</p><h2>Deck progress</h2></div></div>
+      <div id="progressDecks" class="progress-decks"></div>
+      <div class="backup-panel panel"><div><h3>Your data, your call</h3><p class="small-note">Cards are saved in this browser's local storage. Export backups regularly, especially before clearing browser data.</p></div><div class="backup-actions"><button id="exportBtn" class="button button-secondary">Export backup</button><label class="button button-quiet import-label">Import backup<input id="importFile" type="file" accept="application/json,.json" hidden></label></div></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-item active" data-view="homeView"><span>⌂</span>Home</button>
+    <button class="nav-item" data-view="decksView"><span>▤</span>Decks</button>
+    <button class="nav-item" data-view="generateView"><span>✧</span>Generate</button>
+    <button class="nav-item" data-view="progressView"><span>◔</span>Progress</button>
+  </nav>
+
+  <dialog id="deckDialog" class="modal">
+    <form id="deckForm" method="dialog" class="modal-content">
+      <div class="modal-heading"><div><p class="eyebrow">A NEW PLACE TO LEARN</p><h2 id="deckDialogTitle">Create a deck</h2></div><button class="icon-button" value="cancel" aria-label="Close" type="button" data-close="deckDialog">×</button></div>
+      <input type="hidden" id="deckId">
+      <label class="field-label" for="deckName">Deck name</label><input id="deckName" maxlength="70" placeholder="e.g. Audit · SA 200" required>
+      <label class="field-label" for="deckColor">Colour</label><select id="deckColor"><option value="lavender">Lavender</option><option value="peach">Peach</option><option value="mint">Mint</option><option value="blue">Sky blue</option><option value="rose">Rose</option></select>
+      <div class="modal-actions"><button class="button button-quiet" value="cancel" type="button" data-close="deckDialog">Cancel</button><button class="button button-primary" type="submit">Save deck</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="cardDialog" class="modal">
+    <form id="cardForm" method="dialog" class="modal-content">
+      <div class="modal-heading"><div><p class="eyebrow">BUILD YOUR MEMORY</p><h2 id="cardDialogTitle">Add a card</h2></div><button class="icon-button" value="cancel" aria-label="Close" type="button" data-close="cardDialog">×</button></div>
+      <input type="hidden" id="cardId">
+      <label class="field-label" for="cardDeck">Deck</label><select id="cardDeck" required></select>
+      <label class="field-label" for="cardQuestion">Question / prompt</label><textarea id="cardQuestion" rows="3" maxlength="2000" placeholder="What do you want to remember?" required></textarea>
+      <label class="field-label" for="cardAnswer">Answer</label><textarea id="cardAnswer" rows="4" maxlength="5000" placeholder="Write the answer in your own words..." required></textarea>
+      <label class="field-label" for="cardSourceInput">Source reference (optional)</label><input id="cardSourceInput" maxlength="180" placeholder="e.g. Audit, Chapter 1, page 12">
+      <div class="modal-actions"><button class="button button-quiet" type="button" data-close="cardDialog">Cancel</button><button class="button button-primary" type="submit">Save card</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="deckDetailDialog" class="modal">
+    <div class="modal-content">
+      <div class="modal-heading"><div><p class="eyebrow">YOUR DECK</p><h2 id="detailDeckName">Deck</h2><p id="detailDeckMeta" class="small-note"></p></div><button class="icon-button" type="button" data-close="deckDetailDialog" aria-label="Close">×</button></div>
+      <div class="deck-detail-actions"><button id="detailStudyDue" class="button button-primary">Study due cards</button><button id="detailStudyAll" class="button button-secondary">Study all</button><button id="detailAddCard" class="button button-quiet">+ Add card</button></div>
+      <div id="detailCards" class="detail-cards"></div>
+      <div class="modal-actions detail-footer"><button id="detailEditDeck" class="text-button">Edit deck</button><button id="detailDeleteDeck" class="text-button danger-text">Delete deck</button></div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
